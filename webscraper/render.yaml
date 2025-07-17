@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: web-scraper
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: False
+    autoDeploy: true

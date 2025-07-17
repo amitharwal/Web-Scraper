@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraping Results - Web Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #ffffff;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            background-size: 50px 50px;
+            animation: float 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-100px); }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #ffffff, #f0f0f0);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #333333;
+            border: 2px solid #ffffff;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            padding: 10px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .results-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .url-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #ffffff;
+        }
+
+        .url-label {
+            font-size: 0.9em;
+            color: #cccccc;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .url-value {
+            font-size: 1.1em;
+            color: #ffffff;
+            word-break: break-all;
+        }
+
+        .data-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            color: #ffffff;
+            margin-bottom: 15px;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 8px;
+        }
+
+        .data-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .data-label {
+            font-size: 0.9em;
+            color: #aaaaaa;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-value {
+            color: #ffffff;
+            font-size: 1em;
+            line-height: 1.4;
+        }
+
+        .success-badge {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .error-badge {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffffff;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #aaaaaa;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .results-card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🌐</div>
+            <h1>Scraping Results</h1>
+            <a href="/" class="back-btn">← Scrape Another URL</a>
+        </div>
+
+        <div class="results-card">
+            <div class="url-info">
+                <div class="url-label">Scraped URL</div>
+                <div class="url-value">{{ url }}</div>
+            </div>
+
+            {% if success %}
+                <div class="success-badge">✓ Successfully Scraped</div>
+
+                <div class="data-section">
+                    <div class="section-title">Page Information</div>
+
+                    {% if title %}
+                    <div class="data-item">
+                        <div class="data-label">Page Title</div>
+                        <div class="data-value">{{ title }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if description %}
+                    <div class="data-item">
+                        <div class="data-label">Meta Description</div>
+                        <div class="data-value">{{ description }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if keywords %}
+                    <div class="data-item">
+                        <div class="data-label">Meta Keywords</div>
+                        <div class="data-value">{{ keywords }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if headlines %}
+                <div class="data-section">
+                    <div class="section-title">Headlines Found</div>
+                    {% for headline in headlines %}
+                    <div class="data-item">
+                        <div class="data-value">{{ headline }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if links %}
+                <div class="data-section">
+                    <div class="section-title">Links Found</div>
+                    {% for link in links[:10] %}
+                    <div class="data-item">
+                        <div class="data-label">{{ link.text }}</div>
+                        <div class="data-value">{{ link.url }}</div>
+                    </div>
+                    {% endfor %}
+                    {% if links|length > 10 %}
+                    <div class="data-item">
+                        <div class="data-value">... and {{ links|length - 10 }} more links</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ stats.total_elements or 0 }}</span>
+                        <div class="stat-label">Total Elements</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ stats.total_links or 0 }}</span>
+                        <div class="stat-label">Links Found</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ stats.total_images or 0 }}</span>
+                        <div class="stat-label">Images Found</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ stats.page_size or 0 }}</span>
+                        <div class="stat-label">Page Size (KB)</div>
+                    </div>
+                </div>
+
+            {% else %}
+                <div class="error-badge">✗ Scraping Failed</div>
+
+                <div class="data-section">
+                    <div class="section-title">Error Details</div>
+                    <div class="data-item">
+                        <div class="data-label">Error Message</div>
+                        <div class="data-value">{{ error_message }}</div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
