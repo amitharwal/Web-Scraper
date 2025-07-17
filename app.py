@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, send_file
 from scraper import scrape
-import pandas as pd
 import os
+import json
 
 app = Flask(__name__)
 
@@ -34,6 +34,8 @@ def url_form():
                                    success=False,
                                    error_message=result)
 
+    return render_template('main.html')
+
 
 @app.route('/analysis')
 def analysis():
@@ -42,21 +44,47 @@ def analysis():
         if not os.path.exists('scraped_data.csv'):
             return render_template('analysis.html', has_data=False)
 
-        df = pd.read_csv('scraped_data.csv', on_bad_lines='skip')
+        # Simple CSV reading without pandas
+        import csv
+        data = []
+        with open('scraped_data.csv', 'r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                # Convert numeric fields
+                for field in ['num_headlines', 'num_links', 'total_elements', 'total_images', 'page_size_kb']:
+                    if field in row:
+                        try:
+                            if field == 'page_size_kb':
+                                row[field] = float(row[field])
+                            else:
+                                row[field] = int(row[field])
+                        except:
+                            row[field] = 0
+                data.append(row)
 
-        if len(df) == 0:
+        if len(data) == 0:
             return render_template('analysis.html', has_data=False)
 
-        # Calculate statistics
+        # Calculate statistics manually
+        total_sites = len(data)
+        avg_links = sum(row.get('num_links', 0) for row in data) / total_sites if total_sites > 0 else 0
+        avg_images = sum(row.get('total_images', 0) for row in data) / total_sites if total_sites > 0 else 0
+        avg_size = sum(row.get('page_size_kb', 0) for row in data) / total_sites if total_sites > 0 else 0
+
+        # Find max values
+        most_links_site = max(data, key=lambda x: x.get('num_links', 0))
+        most_images_site = max(data, key=lambda x: x.get('total_images', 0))
+        biggest_site = max(data, key=lambda x: x.get('page_size_kb', 0))
+
         stats = {
-            'total_sites': len(df),
-            'avg_links': round(df['num_links'].mean(), 1),
-            'avg_images': round(df['total_images'].mean(), 1),
-            'avg_size': round(df['page_size_kb'].mean(), 1),
-            'most_links_site': df.loc[df['num_links'].idxmax()].to_dict(),
-            'most_images_site': df.loc[df['total_images'].idxmax()].to_dict(),
-            'biggest_site': df.loc[df['page_size_kb'].idxmax()].to_dict(),
-            'recent_sites': df.tail(10).to_dict('records')  # Last 10 sites
+            'total_sites': total_sites,
+            'avg_links': round(avg_links, 1),
+            'avg_images': round(avg_images, 1),
+            'avg_size': round(avg_size, 1),
+            'most_links_site': most_links_site,
+            'most_images_site': most_images_site,
+            'biggest_site': biggest_site,
+            'recent_sites': data[-10:]  # Last 10 sites
         }
 
         return render_template('analysis.html', has_data=True, **stats)
@@ -75,4 +103,6 @@ def download_csv():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Use PORT from environment variable for deployment
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
