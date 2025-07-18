@@ -7,12 +7,20 @@ from datetime import datetime
 def scrape(url):
     try:
         # Add timeout and headers to look more like a real browser
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        page = requests.get(url, headers=headers, timeout=10)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        }
+
+        session = requests.Session()
+        page = session.get(url, headers=headers, timeout=10)
 
         # Check if request was successful
         page.raise_for_status()  # This raises an exception for bad status codes
-
         soup = BeautifulSoup(page.content, 'html.parser')
 
         data = {}
@@ -57,9 +65,25 @@ def scrape(url):
 
         return data
 
-    except requests.exceptions.RequestException as e:
-        return f"Error scraping {url}: {str(e)}"
+    except requests.exceptions.Timeout:
+        return f"Error: The website took too long to respond (timeout after 10 seconds)"
 
+    except requests.exceptions.ConnectionError:
+        return f"Error: Could not connect to {url}. The site may be down or blocking connections"
+
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 403:
+            return f"Error: Access forbidden (403). This website is blocking automated access."
+        elif e.response.status_code == 404:
+            return f"Error: Page not found (404). Please check the URL."
+        else:
+            return f"Error: The website returned HTTP status code {e.response.status_code}"
+
+    except requests.exceptions.TooManyRedirects:
+        return f"Error: Too many redirects. The URL may be incorrect"
+
+    except requests.exceptions.RequestException as e:
+        return f"Error scraping {url}: {type(e).__name__} - {str(e)}"
 
 def save_to_csv(data, url):
     filename = "scraped_data.csv"
