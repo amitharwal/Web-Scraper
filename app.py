@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, send_file
-from scraper import scrape
+# from scraper import scrape
+from hybrid_scraper import smart_scrape as scrape
 import os
 import json
 
@@ -103,6 +104,6 @@ def download_csv():
 
 
 if __name__ == '__main__':
-    # Use PORT from environment variable for deployment
+    # PORT from environment variable for deployment
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
