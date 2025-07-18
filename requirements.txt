@@ -3,3 +3,5 @@ requests==2.31.0
 beautifulsoup4==4.12.2
 gunicorn==21.2.0
 Werkzeug==2.3.7
+selenium==4.34.2
+webdriver-manager==4.0.2
