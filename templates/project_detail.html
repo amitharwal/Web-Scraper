@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} - Audit Report{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="project-detail-header">
+        <div>
+            <a href="{{ url_for('main.dashboard') }}" class="breadcrumb-link">Dashboard</a>
+            <span class="breadcrumb-separator">/</span>
+            <h1 class="project-title">{{ project.name }}</h1>
+        </div>
+
+        <div class="button-group">
+            {% if report %}
+            <a href="{{ url_for('main.download_pdf_report', report_id=report.id) }}" class="btn btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Download PDF</span>
+            </a>
+            {% endif %}
+
+            <a href="{{ url_for('main.run_audit', project_id=project.id) }}" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                <span>Run Audit Again</span>
+            </a>
+        </div>
+    </div>
+
+    {% if report %}
+        <div class="card chart-card">
+            <div class="chart-header">
+                <h3>Score Over Time</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="historyChart" data-history='{{ chart_data | safe }}'></canvas>
+            </div>
+        </div>
+
+        <div class="section-header" style="text-align: left; margin-top: 48px; margin-bottom: 24px;">
+            <h2>Latest Report</h2>
+            <p style="margin: 0; max-width: 100%;">
+                From audit on {{ report.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+            </p>
+        </div>
+
+        <div class="report-summary">
+            <div class="card stat-card main-score">
+                <div class="stat-label">Overall Score</div>
+                <div class="stat-value">{{ report.overall_score }}<span>/100</span></div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Performance</div>
+                <div class="stat-value">{{ report.performance_score }}</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Accessibility</div>
+                <div class="stat-value">{{ report.a11y_score }}</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">SEO</div>
+                <div class="stat-value">{{ report.seo_score }}</div>
+            </div>
+        </div>
+
+        <div class="report-tabs">
+            <div class="tab-nav">
+                <button class="tab-link active" data-tab="performance">Performance</button>
+                <button class="tab-link" data-tab="seo">SEO</button>
+                <button class="tab-link" data-tab="accessibility">Accessibility</button>
+                <button class="tab-link" data-tab="links">
+                    Broken Links ({{ report.broken_links|length }})
+                </button>
+            </div>
+
+            <div id="performance" class="tab-content active">
+                <div class="card report-card">
+                    {% for item in report.results if item.category == 'performance' %}
+                    <div class="report-item item-{{ item.status | lower }}">
+                        <span class="item-icon"></span>
+                        <div class="item-content">
+                            <strong>{{ item.title }}</strong>
+                            <p>{{ item.message }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="seo" class="tab-content">
+                <div class="card report-card">
+                    {% for item in report.results if item.category == 'seo' %}
+                    <div class="report-item item-{{ item.status | lower }}">
+                        <span class="item-icon"></span>
+                        <div class="item-content">
+                            <strong>{{ item.title }}</strong>
+                            <p>{{ item.message }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="accessibility" class="tab-content">
+                <div class="card report-card">
+                    {% for item in report.results if item.category == 'accessibility' %}
+                    <div class="report-item item-{{ item.status | lower }}">
+                        <span class="item-icon"></span>
+                        <div class="item-content">
+                            <strong>{{ item.title }}</strong>
+                            <p>{{ item.message }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="links" class="tab-content">
+                <div class="card report-card">
+                    {% if report.broken_links %}
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Broken URL Found</th>
+                                        <th>Status Code</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for link in report.broken_links %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ link.link_url }}" target="_blank" rel="noopener noreferrer">
+                                                {{ link.link_url }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge status-failed">
+                                                {{ link.status_code }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="report-item item-pass">
+                            <span class="item-icon"></span>
+                            <div class="item-content">
+                                <strong>No Broken Links Found</strong>
+                                <p>We crawled the internal links on this page and everything looks great!</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header" style="text-align: left; margin-top: 48px; margin-bottom: 24px;">
+            <h2>Audit History</h2>
+        </div>
+        <div class="card">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Overall</th>
+                            <th>Perf.</th>
+                            <th>A11y</th>
+                            <th>SEO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in all_reports %}
+                        <tr>
+                            <td>{{ r.created_at.strftime('%b %d, %Y %I:%M %p') }}</td>
+                            <td><span class="status-badge status-{{ r.status | lower }}">{{ r.status }}</span></td>
+                            <td><strong>{{ r.overall_score }}</strong></td>
+                            <td>{{ r.performance_score }}</td>
+                            <td>{{ r.a11y_score }}</td>
+                            <td>{{ r.seo_score }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="empty-state-card">
+            <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+            </div>
+            <h2>No audit report found!</h2>
+            <p>You've created this project, but an audit has not been successfully run yet. Click the button below to start your first audit.</p>
+            <a href="{{ url_for('main.run_audit', project_id=project.id) }}" class="btn btn-primary btn-large">
+                Run First Audit
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

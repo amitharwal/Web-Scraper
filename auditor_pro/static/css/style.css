@@ -1,0 +1,1001 @@
+/*
+ * Page Auditor Pro - Main Stylesheet
+ * Theme: Modern Analytics Dashboard
+ *
+ * Purpose: Shared visual language for landing, dashboard, and report views.
+ * Scope: Layout primitives, color system, components, and responsive rules.
+ * Notes:
+ * - Favor variables over literals; update --color-* and sizing tokens first.
+ * - Sticky header and layered dropdowns use explicit z-index values.
+ * - Hover transitions use small transforms; keep subtle to reduce layout shift.
+ */
+
+/* --- 1. Root Variables & Font Import ---
+   Why: Centralize typography, color, spacing, and elevation tokens for consistency and theming.
+   How: :root exposes CSS custom properties; components consume tokens via var().
+   Change strategy: Prefer updating tokens here over editing scattered literals. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+    /* New Color Palette (brand + semantic states) */
+    --color-primary: #5252E0; /* Vibrant Indigo (brand) */
+    --color-primary-dark: #4242D0; /* Hover/active accent */
+    --color-primary-light: #F0F0FF; /* Subtle backgrounds, focus rings */
+    --color-bg: #F8F9FA; /* App background */
+    --color-card-bg: #FFFFFF; /* Surfaces/cards */
+    --color-text: #212529; /* Primary text */
+    --color-text-muted: #6C757D; /* Secondary text */
+    --color-border: #EDEEF2; /* Hairline borders and dividers */
+    --color-success: #198754;
+    --color-danger: #DC3545;
+    --color-info: #0D6EFD;
+    --color-success-bg: #E8F5E9;
+    --color-danger-bg: #FDECEA;
+    --color-info-bg: #E7F0FF;
+
+    /* Sizing & Effects (rounded corners + elevation scale) */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --container-width: 1140px; /* Max readable line length for desktop */
+}
+
+/* --- 2. Global Reset & Body ---
+   Why: Normalize box model and remove default margins; set flex column to anchor footer at bottom.
+   Frequency: File-level baseline applied once. */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* Predictable sizing: borders/padding inside declared width */
+}
+
+body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    display: flex;
+    flex-direction: column; /* Enables sticky footer layout */
+    min-height: 100vh;
+    line-height: 1.6; /* Comfortable reading */
+}
+
+.container {
+    width: 100%;
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 24px; /* Horizontal breathing room */
+}
+
+.main-content {
+    flex: 1;
+    padding: 48px 0; /* Vertical rhythm */
+}
+
+/* --- 3. Header & Navigation ---
+   Why: Persistent app nav with sticky positioning.
+   Note: z-index ensures header sits above cards and dropdowns (z=100). */
+.app-header {
+    background: var(--color-card-bg);
+    border-bottom: 1px solid var(--color-border);
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100; /* Above content surfaces; below modal (z=1000) */
+}
+.app-header nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+}
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--color-primary), #7979F2);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.nav-links a {
+    text-decoration: none;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease; /* Subtle emphasis on intent change */
+}
+.nav-links a:hover {
+    color: var(--color-text);
+    background-color: var(--color-bg);
+}
+.nav-links a.btn {
+    padding: 8px 16px; /* Button-sized targets in nav for Fitts’ Law */
+}
+
+/* --- 4. Buttons ---
+   Why: Unified button system with stateful styles.
+   Structure: .btn as base, modifiers for primary/secondary/size/width/icon-only.
+   Caution: Keep transforms minimal to avoid layout shift. */
+.btn {
+    display: inline-flex; /* Align icon + label without extra markup hacks */
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+    box-shadow: 0 4px 14px rgba(82, 82, 224, 0.2); /* Brand-tinted elevation */
+}
+.btn-primary:hover {
+    background: var(--color-primary-dark);
+    box-shadow: 0 6px 16px rgba(82, 82, 224, 0.25);
+    transform: translateY(-2px); /* Light lift on hover */
+}
+.btn-secondary {
+    background: var(--color-card-bg);
+    color: var(--color-text);
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover {
+    background-color: var(--color-bg);
+    border-color: #D6D8E0;
+    transform: translateY(-2px);
+}
+.btn-large {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+}
+.btn-full-width {
+    width: 100%;
+}
+.btn-icon-only {
+    padding: 10px; /* Square-ish hit area for icon buttons */
+}
+
+/* --- 5. Forms & Cards ---
+   Why: Consistent inputs, accessible focus, and elevated cards for grouping.
+   Note: Focus ring uses brand light for visibility without harshness. */
+.card {
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+.auth-card {
+    max-width: 450px;
+    margin: 32px auto;
+    padding: 40px;
+}
+.auth-card-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+.auth-card-header .logo {
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+}
+.auth-card-header h2 {
+    font-size: 1.75rem;
+    margin-bottom: 8px;
+}
+.auth-card-header p {
+    color: var(--color-text-muted);
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="text"],
+.form-group input[type="url"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-family: var(--font-sans);
+    transition: all 0.2s ease;
+}
+.form-group input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light); /* Soft focus halo */
+}
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.form-footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+.form-footer a {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+.form-footer a:hover {
+    text-decoration: underline;
+}
+
+/* --- 6. Landing Page (index.html) ---
+   Why: Marketing-forward hero and features grid. */
+.hero-section {
+    text-align: center;
+    padding: 100px 0;
+}
+.hero-section h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    letter-spacing: -1px; /* Tighter display tracking */
+}
+.hero-section .subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+    margin-bottom: 40px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.features-section {
+    padding: 60px 0;
+    background: var(--color-card-bg);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+}
+.section-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+.section-header h2 {
+    font-size: 2.25rem;
+    font-weight: 700;
+}
+.section-header p {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    max-width: 600px;
+    margin: 8px auto 0;
+}
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Fluid cards */
+    gap: 32px;
+}
+.feature-card {
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    padding: 32px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s ease;
+}
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+.feature-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+.feature-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+}
+.feature-card p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}
+
+/* --- 7. Dashboard (dashboard.html) ---
+   Why: Header + empty state prior to first project creation. */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+.dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+.empty-state-card {
+    text-align: center;
+    background: var(--color-card-bg);
+    padding: 80px 60px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+.empty-state-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
+.empty-state-card h2 {
+    font-size: 1.75rem;
+    margin-bottom: 12px;
+}
+.empty-state-card p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    max-width: 450px;
+    margin: 0 auto 24px;
+}
+
+/* --- 8. Modal (New Project) ---
+   Why: Layered UI for create flows.
+   Note: Visibility controlled via .is-visible class; backdrop z-index > header. */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Above sticky header */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+.modal-backdrop.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-content {
+    background: var(--color-card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 500px;
+    transform: translateY(20px);
+    transition: all 0.2s ease;
+}
+.modal-backdrop.is-visible .modal-content {
+    transform: translateY(0);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--color-border);
+}
+.modal-header h3 {
+    font-size: 1.25rem;
+}
+.modal-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+}
+.modal-body {
+    padding: 24px;
+}
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px;
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+}
+
+/* --- 9. Flash Messages ---
+   Why: Transient system messages with semantic coloring.
+   Pattern: .alert + variant modifiers for status. */
+.flash-messages {
+    padding: 0 20px;
+    max-width: var(--container-width);
+    margin: -20px auto 20px auto; /* Pull up to sit closer to header */
+}
+.alert {
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    margin-bottom: 16px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.alert-success { background: var(--color-success-bg); color: var(--color-success); border-color: var(--color-success); }
+.alert-danger  { background: var(--color-danger-bg);  color: var(--color-danger);  border-color: var(--color-danger); }
+.alert-info    { background: var(--color-info-bg);    color: var(--color-info);    border-color: var(--color-info); }
+
+/* --- 10. Footer ---
+   Why: Low-emphasis metadata and legal. Anchored by body flex layout. */
+.app-footer {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-card-bg);
+    margin-top: auto; /* Pushes footer to bottom of viewport */
+}
+
+/* --- 11. Project Cards (Dashboard) ---
+   Why: Responsive grid of project summaries with truncation and actions. */
+.project-list {
+    display: grid;
+    /* Create a responsive grid: 3 columns on large, 2 on medium, 1 on small */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.project-card {
+    /* Uses the .card styles (bg, border, shadow) */
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+}
+
+.project-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.project-card-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    /* Truncate long names */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.project-card-header .project-card-menu {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+}
+.project-card-header .project-card-menu:hover {
+    background-color: var(--color-bg);
+}
+
+.project-card p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    word-break: break-all;
+    flex-grow: 1; /* Pushes footer down */
+    /* margin-bottom: 24px; */ /* <-- THIS WAS THE BUG */
+}
+
+.project-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border);
+    margin-top: 24px;
+}
+
+.project-card-status {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+/* --- 12. Project Card Updates ---
+   Why: Dedicated area for long URLs; break-all prevents overflow. */
+.project-card-url {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    word-break: break-all;
+    flex-grow: 1; /* Pushes footer down */
+    /* margin-bottom: 24px; */
+}
+
+/* --- 13. Project Card Link (Dashboard) ---
+   Why: Entire title is a link; color change on hover for affordance. */
+.project-card-title-link {
+    text-decoration: none;
+    color: var(--color-text);
+}
+.project-card-title-link h3 {
+    transition: color 0.2s ease;
+}
+.project-card-title-link:hover h3 {
+    color: var(--color-primary);
+}
+
+
+/* --- 14. Project Detail Page (Report) ---
+   Why: Breadcrumb + title area and key stats. */
+.project-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+.project-detail-header .breadcrumb-link {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.project-detail-header .breadcrumb-link:hover {
+    color: var(--color-primary);
+}
+.project-detail-header .breadcrumb-separator {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin: 0 8px;
+}
+.project-detail-header .project-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.report-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+.report-summary .stat-card {
+    padding: 24px;
+    text-align: center;
+}
+.report-summary .stat-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: 8px;
+    display: block;
+}
+.report-summary .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--color-primary);
+}
+.report-summary .stat-value.small {
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding-top: 10px; /* Align with other numbers */
+}
+.report-summary .stat-value span {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+.report-summary .main-score {
+    grid-column: 1 / 3; /* Span 2 columns */
+    background: var(--color-primary);
+    color: white;
+}
+.report-summary .main-score .stat-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+.report-summary .main-score .stat-value {
+    color: white;
+    font-size: 3.5rem;
+}
+
+/* --- 15. Report Tabs & Items ---
+   Why: Tabbed content switcher and status-coded list items. */
+.tab-nav {
+    display: flex;
+    border-bottom: 2px solid var(--color-border);
+    margin-bottom: 24px;
+}
+.tab-link {
+    padding: 12px 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    margin-bottom: -2px; /* Pulls link down to overlap border */
+}
+.tab-link:hover {
+    color: var(--color-text);
+}
+.tab-link.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+.report-card {
+    padding: 24px;
+}
+.report-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 0;
+}
+.report-item + .report-item {
+    border-top: 1px solid var(--color-border);
+}
+.item-content strong {
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+.item-content p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}
+.item-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 4px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.item-icon::before {
+    content: '';
+    color: white;
+    font-weight: 700;
+    font-size: 0.8rem;
+    line-height: 1;
+}
+
+/* Status Colors (semantic variants applied via class on .report-item) */
+.report-item.item-pass { color: var(--color-success); }
+.item-pass .item-icon { background: var(--color-success); }
+.item-pass .item-icon::before { content: '✓'; }
+
+.report-item.item-warn { color: #E65100; } /* Orange (caution) */
+.item-warn .item-icon { background: #E65100; }
+.item-warn .item-icon::before { content: '!'; }
+
+.report-item.item-fail { color: var(--color-danger); }
+.item-fail .item-icon { background: var(--color-danger); }
+.item-fail .item-icon::before { content: '×'; }
+
+.report-item.item-info { color: var(--color-info); }
+.item-info .item-icon { background: var(--color-info); }
+.item-info .item-icon::before { content: 'i'; font-style: italic; }
+
+/* --- 16. Report Summary Grid Update ---
+   Why: Responsive remap of summary grid for small/medium/large screens.
+   Note: Media queries below progressively enhance the layout. */
+.report-summary {
+    /* 2 columns on small screens, 3 on medium, 6 on large */
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.report-summary .main-score {
+    /* Span full width on small screens */
+    grid-column: 1 / -1;
+}
+
+/* Medium screens and up */
+@media (min-width: 768px) {
+    .report-summary {
+        grid-template-columns: repeat(6, 1fr);
+    }
+    .report-summary .main-score {
+        /* Span 3 of 6 columns */
+        grid-column: span 3;
+    }
+    .report-summary .stat-card {
+        /* Sub-scores span 2 of 6 columns */
+        grid-column: span 2;
+    }
+}
+
+/* Large screens and up */
+@media (min-width: 992px) {
+    .report-summary .main-score {
+        /* Span 2 of 6 columns */
+        grid-column: span 2;
+    }
+    .report-summary .stat-card {
+        /* Sub-scores span 1 of 6 columns */
+        grid-column: span 1;
+    }
+    .report-summary .stat-card:nth-child(2) {
+        grid-column: 3 / 4; /* Explicitly place Perf */
+    }
+    .report-summary .stat-card:nth-child(3) {
+        grid-column: 4 / 5; /* Explicitly place A11y */
+    }
+    .report-summary .stat-card:nth-child(4) {
+        grid-column: 5 / 6; /* Explicitly place SEO */
+    }
+    .report-summary .stat-card:nth-child(5) {
+        grid-column: 6 / 7; /* Explicitly place Last Audited */
+    }
+}
+
+/* --- 17. Chart and History Table ---
+   Why: Standardized chart container height and table styling with hover affordance. */
+
+.chart-card {
+    padding: 24px;
+    margin-bottom: 32px;
+}
+.chart-header {
+    margin-bottom: 24px;
+}
+.chart-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+.chart-container {
+    position: relative;
+    height: 350px;
+}
+
+.table-wrapper {
+    overflow-x: auto; /* Horizontal scroll for narrow screens */
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap; /* Prevent columns from wrapping awkwardly */
+}
+th {
+    background: var(--color-bg);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+td {
+    font-size: 0.95rem;
+}
+td strong {
+    font-weight: 600;
+    color: var(--color-text);
+}
+tr:last-child td {
+    border-bottom: none;
+}
+tr:hover {
+    background-color: var(--color-bg);
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.status-badge.status-complete {
+    color: var(--color-success);
+    background: var(--color-success-bg);
+}
+.status-badge.status-pending,
+.status-badge.status-running {
+    color: var(--color-info);
+    background: var(--color-info-bg);
+}
+.status-badge.status-failed {
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+}
+
+/* --- 18. Button Group ---
+   Why: Even spacing between adjacent actions. */
+.button-group {
+    display: flex;
+    gap: 12px;
+}
+
+/* --- 20. Dropdown Menu Form ---
+   Why: Normalize nested form inside dropdown to remove default margins and ensure full-width items.
+   Note: This block appears twice in the original; kept intentionally to preserve source parity. */
+.dropdown-menu form {
+    /* Remove default form margins */
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+
+.dropdown-item {
+    /* Make the button fill its parent form */
+    width: 100%;
+}
+
+/* --- 19. Project Card Dropdown Menu ---
+   Why: Anchored contextual actions; visibility toggled via .is-visible.
+   Positioning: Absolutely positioned relative to wrapper; transforms for pop motion. */
+.project-menu-wrapper {
+    position: relative; /* Allows the menu to be positioned relative to this */
+}
+
+.project-card-menu-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+.project-card-menu-btn:hover {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%; /* Position it right below the button */
+    right: 0;
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: 8px;
+    width: 160px;
+    z-index: 10; /* Above cards; below modal and header backdrop */
+    opacity: 0; /* Hidden by default */
+    visibility: hidden;
+    transform: translateY(10px); /* "Pop up" animation */
+    transition: all 0.2s ease;
+}
+.dropdown-menu.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.dropdown-header {
+    display: block;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+}
+.dropdown-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: var(--color-text);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.dropdown-item:hover {
+    background: var(--color-bg);
+    color: var(--color-primary);
+}
+.dropdown-item.active {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* --- 20. Dropdown Menu Form ---
+   Duplicate of earlier normalization block retained to avoid changing original structure.
+   Action: Future cleanup can consolidate duplicates safely if no side effects observed. */
+.dropdown-menu form {
+    /* Remove default form margins */
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+
+.dropdown-item {
+    /* Make the button fill its parent form */
+    width: 100%;
+}
+
+/* --- 21. Dropdown Menu Delete Button ---
+   Why: Visual separation and destructive action emphasis. */
+
+.dropdown-divider {
+    height: 1px;
+    background-color: var(--color-border);
+    margin: 8px; /* Adds space above and below */
+}
+
+.dropdown-item-danger {
+    color: var(--color-danger);
+}
+.dropdown-item-danger:hover {
+    background-color: var(--color-danger-bg);
+    color: var(--color-danger);
+}
+
+/* --- 22. Button Loading State ---
+   Why: Communicate non-interactive state consistently across buttons. */
+.btn.is-loading,
+.btn:disabled {
+    cursor: not-allowed;
+    background-color: var(--color-border);
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+    box-shadow: none;
+    transform: none;
+}

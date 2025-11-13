@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Page Auditor Pro{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1>Your Personal Website Watchdog</h1>
+        <p class="subtitle">Get automated SEO, Accessibility, and Performance audits. Never miss a critical error again.</p>
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-large btn-primary">Get Started for Free</a>
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Finally, a tool that does it all.</h2>
+            <p>Stop guessing. Start improving. We monitor your site's health so you can focus on growing your business.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
+                </div>
+                <h3>Expert SEO Analysis</h3>
+                <p>Go beyond simple meta tags. We check for social (Open Graph) tags, mobile viewport, and crawl for broken internal links.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.61 10.26a12.3 12.3 0 0 0-3.32-3.32C15.4 5.04 13.03 4 10 4S4.6 5.04 2.7 6.94A12.3 12.3 0 0 0 7.39 20h.01c.21.2.43.39.67.56a.5.5 0 0 0 .62 0c.24-.17.46-.36.67-.56h.01a12.3 12.3 0 0 0 4.69-13.06Z"></path><path d="M10 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path></svg>
+                </div>
+                <h3>Deep Accessibility Checks</h3>
+                <p>Ensure your site is usable by everyone. We find missing form labels, improper ARIA roles, and images without alt text.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="m12 9-2 4h4l-2 4"></path></svg>
+                </div>
+                <h3>Google Lighthouse Performance</h3>
+                <p>Get your true "Core Web Vitals" score. We run Google's own Lighthouse tool to give you a real performance benchmark.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

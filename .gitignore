@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+*.env
+instance/
+
+# Celery
+# This file is created by Celery Beat to store its schedule
+celerybeat-schedule
+
+# Data / Reports
+# Ignores all CSV, SQLite, and generated PDF files
+*.csv
+*.db
+*.sqlite3
+*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+# Ignores configuration folders for common editors
+.vscode/
+.idea/

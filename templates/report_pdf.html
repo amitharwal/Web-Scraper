@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ project.name }} - Audit Report</title>
+    <link rel="stylesheet" href="{{ css_url }}">
+    <style>
+        /*
+          Special styles just for the PDF to override screen styles
+        */
+        body {
+            background: #ffffff;
+            font-size: 10pt;
+        }
+        .report-pdf-page {
+            width: 100%;
+            padding: 20px;
+        }
+
+        .report-summary {
+            /* Use 'flex' for better compatibility in PDFs vs. 'grid' */
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px; /* Counteract padding on children */
+        }
+        .report-summary .stat-card {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin: 10px; /* Add margin */
+        }
+        .report-summary .main-score {
+            /* 100% width, minus margins */
+            width: calc(100% - 20px);
+            order: 1; /* Show first */
+        }
+        .report-summary .stat-card:not(.main-score) {
+            /* 33.3% width, minus margins */
+            width: calc(33.333% - 20px);
+            order: 2; /* Show after */
+        }
+        .report-summary .stat-value {
+            font-size: 2rem;
+        }
+        .report-summary .main-score .stat-value {
+            font-size: 2.5rem;
+        }
+
+        .report-card {
+            box-shadow: none;
+            border: 1px solid #dee2e6;
+            padding: 0;
+            margin-top: 30px;
+        }
+        .report-item {
+            padding: 15px;
+            page-break-inside: avoid;
+        }
+        .report-item + .report-item {
+            border-top: 1px solid #dee2e6;
+        }
+        .report-tabs {
+            page-break-before: always;
+        }
+        .tab-nav {
+            display: none;
+        }
+        .tab-content {
+            display: block !important;
+        }
+        .pdf-header {
+            text-align: center;
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .pdf-header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: var(--color-text);
+        }
+        .pdf-header p {
+            font-size: 1.1rem;
+            color: var(--color-text-muted);
+        }
+        .section-header {
+            text-align: left;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-pdf-page">
+
+        <div class="pdf-header">
+            <h1>Audit Report</h1>
+            <p><strong>Project:</strong> {{ project.name }} ({{ project.base_url }})</p>
+            <p><strong>Audited On:</strong> {{ report.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+        </div>
+
+        <div class="report-summary">
+            <div class="card stat-card main-score">
+                <div class="stat-label">Overall Score</div>
+                <div class="stat-value">{{ report.overall_score }}<span>/100</span></div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Performance</div>
+                <div class="stat-value">{{ report.performance_score }}</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Accessibility</div>
+                <div class="stat-value">{{ report.a11y_score }}</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">SEO</div>
+                <div class="stat-value">{{ report.seo_score }}</div>
+            </div>
+        </div>
+
+        <div class="report-tabs">
+            <div class="tab-content">
+                <h2 class="section-header">Performance Report</h2>
+                <div class="card report-card">
+                    {% for item in report.results if item.category == 'performance' %}
+                    <div class="report-item item-{{ item.status | lower }}">
+                        <span class="item-icon"></span>
+                        <div class="item-content">
+                            <strong>{{ item.title }}</strong>
+                            <p>{{ item.message }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="tab-content">
+                <h2 class="section-header">SEO Report</h2>
+                <div class="card report-card">
+                    {% for item in report.results if item.category == 'seo' %}
+                    <div class="report-item item-{{ item.status | lower }}">
+                        <span class="item-icon"></span>
+                        <div class="item-content">
+                            <strong>{{ item.title }}</strong>
+                            <p>{{ item.message }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="tab-content">
+                <h2 class="section-header">Accessibility Report</h2>
+                <div class="card report-card">
+                    {% for item in report.results if item.category == 'accessibility' %}
+                    <div class="report-item item-{{ item.status | lower }}">
+                        <span class="item-icon"></span>
+                        <div class="item-content">
+                            <strong>{{ item.title }}</strong>
+                            <p>{{ item.message }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

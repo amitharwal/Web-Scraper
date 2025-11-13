@@ -1,13 +1,160 @@
+# This file tells Render how to build and run the entire application.
+
+# Define our services. We have 3 services and 2 databases.
 services:
+  # 1. The Web Service (Flask/Gunicorn/SocketIO)
   - type: web
-    name: web-scraper
-    runtime: python
-    pythonVersion: "3.11"
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    name: auditor-pro-web
+    env: python
+    # Tell Render to use our Procfile 'web' command
+    startCommand: "gunicorn --worker-class eventlet -w 1 --log-level=info --access-logfile - --error-logfile - run:app"
+    buildFilter:
+      paths:
+      - "auditor_pro/**"
+      - "templates/**"
+      - "static/**"
+      - "*.py"
+      - "requirements.txt"
+      - "Procfile"
     envVars:
-      - key: SECRET_KEY
-        generateValue: true
+      - key: FLASK_APP
+        value: run.py
+      - key: FLASK_CONFIG
+        value: production
       - key: FLASK_DEBUG
         value: False
-    autoDeploy: true
+      - key: PYTHON_VERSION
+        value: 3.11.0 # Use the same Python version as local
+      # Link to our database and redis services
+      - key: DATABASE_URL
+        fromService:
+          type: psql
+          name: auditor-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: auditor-redis
+          property: connectionString
+      # environment variables
+      - key: SECRET_KEY
+        generateValue: true # Render will create a secure key
+      - key: MAIL_SERVER
+        value: "smtp.googlemail.com"
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USE_TLS
+        value: true
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+    # install the C-libraries for WeasyPrint
+    packages:
+      - libpango-1.0-0
+      - libcairo2
+      - libgdk-pixbuf2.0-0
+
+  # 2. The Celery Worker Service
+  - type: worker
+    name: auditor-pro-worker
+    env: python
+    # Tell Render to use our Procfile 'worker' command
+    startCommand: "celery -A celery_worker.celery worker --loglevel=info"
+    buildFilter:
+      paths:
+      - "auditor_pro/**"
+      - "templates/**"
+      - "static/**"
+      - "*.py"
+      - "requirements.txt"
+      - "Procfile"
+    envVars:
+      - key: FLASK_CONFIG
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromService:
+          type: psql
+          name: auditor-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: auditor-redis
+          property: connectionString
+      # We need Lighthouse & its dependencies
+      - key: NODE_VERSION
+        value: 18 # Install Node.js
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: auditor-pro-web
+          envVarKey: SECRET_KEY
+      - key: MAIL_SERVER
+        value: "smtp.googlemail.com"
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USE_TLS
+        value: true
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+    # This installs C-libraries AND Lighthouse
+    packages:
+      - libpango-1.0-0
+      - libcairo2
+      - libgdk-pixbuf2.0-0
+    preDeployCommand: "npm install -g lighthouse"
+
+  # 3. The Celery Beat Scheduler
+  - type: worker
+    name: auditor-pro-beat
+    env: python
+    # Tell Render to use our Procfile 'beat' command
+    startCommand: "celery -A celery_worker.celery beat --loglevel=info"
+    buildFilter:
+      paths:
+      - "auditor_pro/**"
+      - "templates/**"
+      - "static/**"
+      - "*.py"
+      - "requirements.txt"
+      - "Procfile"
+    envVars:
+      - key: FLASK_CONFIG
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromService:
+          type: psql
+          name: auditor-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: auditor-redis
+          property: connectionString
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: auditor-pro-web
+          envVarKey: SECRET_KEY
+
+# Define our managed databases
+databases:
+  # 1. The PostgreSQL Database
+  - name: auditor-db
+    databaseName: auditor_db
+    plan: free # Use the free plan to start
+
+  # 2. The Redis Instance
+  - name: auditor-redis
+    plan: free # Use the free plan to start

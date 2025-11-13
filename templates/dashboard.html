@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Page Auditor Pro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <h1>Your Dashboard</h1>
+        <a href="#" class="btn btn-primary" id="openProjectModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>New Project</span>
+        </a>
+    </div>
+
+    <div class="project-list">
+        {% if projects %}
+            {% for project in projects %}
+                <div class="card project-card" data-project-id="{{ project.id }}">
+                    <div class="project-card-header">
+                        <a href="{{ url_for('main.view_project', project_id=project.id) }}" class="project-card-title-link">
+                            <h3>{{ project.name }}</h3>
+                        </a>
+
+                        <div class="project-menu-wrapper">
+                            <button class="project-card-menu-btn" data-menu-id="project-menu-{{ project.id }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                            </button>
+                            <div class="dropdown-menu" id="project-menu-{{ project.id }}">
+                                <span class="dropdown-header">Set Schedule</span>
+                                <form action="{{ url_for('main.set_schedule', project_id=project.id) }}" method="POST">
+                                    <input type="hidden" name="schedule" value="none">
+                                    <button type="submit" class="dropdown-item {% if project.schedule == 'none' %}active{% endif %}">None</button>
+                                </form>
+                                <form action="{{ url_for('main.set_schedule', project_id=project.id) }}" method="POST">
+                                    <input type="hidden" name="schedule" value="daily">
+                                    <button type="submit" class="dropdown-item {% if project.schedule == 'daily' %}active{% endif %}">Daily</button>
+                                </form>
+                                <form action="{{ url_for('main.set_schedule', project_id=project.id) }}" method="POST">
+                                    <input type="hidden" name="schedule" value="weekly">
+                                    <button type="submit" class="dropdown-item {% if project.schedule == 'weekly' %}active{% endif %}">Weekly</button>
+                                </form>
+
+                                <div class="dropdown-divider"></div>
+                                <form action="{{ url_for('main.delete_project', project_id=project.id) }}" method="POST">
+                                    <button type="submit" class="dropdown-item dropdown-item-danger"
+                                            onclick="return confirm('Are you sure? This will permanently delete this project and all its audit data.')">
+                                        Delete Project
+                                    </button>
+                                </form>
+                                </div>
+                        </div>
+                    </div>
+
+                    <p class="project-card-url">{{ project.base_url }}</p>
+                    <div class="project-card-footer">
+                        <span class="project-card-status">
+                            {{ project.get_latest_report_status() }}
+                        </span>
+
+                        <a href="{{ url_for('main.run_audit', project_id=project.id) }}" class="btn btn-secondary audit-run-btn">
+                            Run Audit
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state-card">
+                <div class="empty-state-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+                </div>
+                <h2>You don't have any projects yet.</h2>
+                <p>A "Project" is a website you want to monitor. Create one to start running audits and tracking its health over time.</p>
+                <button class="btn btn-primary btn-large" id="openProjectModal">
+                    Create Your First Project
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="modal-backdrop" id="projectModal">
+    <div class="modal-content card">
+
+        <div class="modal-header">
+            <h3>Create a New Project</h3>
+            <button class="modal-close-btn close-modal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+
+        <form action="{{ url_for('main.create_project') }}" method="POST">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="projectName">Project Name</label>
+                    <input type="text" id="projectName" name="project_name" placeholder="e.g., My Personal Blog" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectUrl">Website URL</label>
+                    <input type="url" id="projectUrl" name="project_url" placeholder="https://example.com" required>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Project</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if current_user.is_authenticated %}
+<script type="text/javascript">
+    // Connect to the Socket.IO server
+    // (This is safe, main.js will only use it if it's on the dashboard)
+    var socket = io();
+
+    // Once connected, join a private "room" for this user
+    socket.on('connect', () => {
+        // This tells the server to send messages for this user
+        // to this specific client
+        socket.emit('join_room', { room: 'user_{{ current_user.id }}' });
+    });
+
+    // Add a click listener to all "Run Audit" buttons
+    // This will provide instant feedback *before* the page reloads
+    document.querySelectorAll('.audit-run-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Find the parent card
+            const card = btn.closest('.project-card');
+            if (card) {
+                // Update the status text immediately
+                const statusEl = card.querySelector('.project-card-status');
+                statusEl.textContent = 'Audit queued...';
+
+                // Disable the button
+                btn.disabled = true;
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}
